@@ -16,7 +16,7 @@ public class VisualGear : SuperGear
     // Update is called once per frame
     void Update()
     {
-        
+       
         rotate =Vector3.zero;
 
         switch (axis)
@@ -49,7 +49,7 @@ public class VisualGear : SuperGear
             ratio = (float) ToothCount / (float) g.ToothCount;
             switch (Direction[i])
             {
-                case JointDirection.PASS_THROUGH:
+                case JointDirection.STRAIGHT:
                     
                     g.AngularVelocity = AngularVelocity * (ratio);
                     if (app == GearApplication.Unguided)
@@ -64,7 +64,7 @@ public class VisualGear : SuperGear
                         g.torque = torque / ratio;
                     }
                     break;
-                case JointDirection.STRAIGHT:
+                case JointDirection.PASS_THROUGH:
                     g.AngularVelocity = AngularVelocity;
                     if (app == GearApplication.Unguided)
                     {

@@ -52,8 +52,8 @@ public class EfficencyMapVisualizer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float recalc_w = Mathf.Clamp(trans.rect.width * RPM / MaxRPM, 0, trans.rect.width);
-        float recalc_h = Mathf.Clamp(trans.rect.height * (Torque * 10) / MaxTorqueRecalc, 0, trans.rect.height);
+        float recalc_w = Mathf.Clamp(trans.rect.width * Mathf.Abs(RPM) / MaxRPM, 0, trans.rect.width);
+        float recalc_h = Mathf.Clamp(trans.rect.height * (Mathf.Abs(Torque) * 10) / MaxTorqueRecalc, 0, trans.rect.height);
         pointer.localPosition = new Vector3((int)recalc_w, (int)recalc_h);
 
         float tempeff = rgb.r[(int)recalc_w,(int)recalc_h] *
@@ -61,7 +61,9 @@ public class EfficencyMapVisualizer : MonoBehaviour
                         (1 - rgb.b[(int)recalc_w,(int)recalc_h]);
        
         EfficiencyOut?.Invoke(eff[(int)recalc_w,(int)recalc_h].ToString("F2"));
-        motorAxle.MaterialColor = texture.GetPixel((int) RPM, (int) (Torque * MaxTorqueRatio));
+
+        if(motorAxle!=null)
+            motorAxle.MaterialColor = texture.GetPixel((int) RPM, (int) (Torque * MaxTorqueRatio));
     }
 
     float[,] readFloatArray(TextAsset item)

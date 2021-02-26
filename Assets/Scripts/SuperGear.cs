@@ -21,9 +21,10 @@ public enum GearApplication{
 }
 
 
-
+//[RequireComponent(typeof(Rigidbody))]
 public abstract class SuperGear : MonoBehaviour
 {
+    public bool Invert;
     public int ToothCount;
     public float DiameterMillimiters;
     public float ThicknessMillimiters;
@@ -50,22 +51,23 @@ public abstract class SuperGear : MonoBehaviour
         
         r = gameObject.GetComponent<Rigidbody>();
         t = gameObject.GetComponent<Transform>();
-        r.maxAngularVelocity = Mathf.Infinity;
+        if(r!=null)
+            r.maxAngularVelocity = Mathf.Infinity;
 
         switch (app)
         {
             case GearApplication.Guided:
-                DiameterMillimiters = t.localScale.x * 100;
-                ThicknessMillimiters = t.localScale.z * 100;
+                DiameterMillimiters = t.localScale.x * 100f;
+                ThicknessMillimiters = t.localScale.z * 100f;
                 break;
             case GearApplication.Unguided:
                 break;
             case GearApplication.ScaleBased:
                 
                 Vector3 scale;
-                scale.x = DiameterMillimiters / 100;
-                scale.y = DiameterMillimiters / 100;
-                scale.z = ThicknessMillimiters / 100;
+                scale.x = DiameterMillimiters / 100f;
+                scale.y = DiameterMillimiters / 100f;
+                scale.z = ThicknessMillimiters / 100f;
                 t.localScale = scale;
                 break;
             
