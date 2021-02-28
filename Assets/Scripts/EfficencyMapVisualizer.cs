@@ -15,6 +15,7 @@ public struct MapRGB
 }
 public class EfficencyMapVisualizer : MonoBehaviour
 {
+    public bool monochrome;
     public RectTransform pointer;
     
     [HideInInspector]
@@ -27,41 +28,44 @@ public class EfficencyMapVisualizer : MonoBehaviour
     public MapRGB rgb;
     public float[,] eff;
     public int MaxRPM=1800;
+    public float MaxRPMRatio = 10.0f;
     public float MaxTorque=60f;
     public float MaxTorqueRatio = 10.0f;
     private int MaxTorqueRecalc;
-    public float Torque;
-    public float RPM;
+    [SerializeField]
+    private int MaxRPMRecalc;
+    public double Torque;
+    public double RPM;
     private RectTransform trans;
 
     public InstanceMaterial motorAxle;
 
-    public UnityEventString EfficiencyOut=new UnityEventString(); 
+    public UnityEventString EfficiencyOut=new UnityEventString();
+    public UnityEventFloat EfficiencyOutFloat=new UnityEventFloat();
     // Start is called before the first frame update
     void Start()
     {
         
         trans = GetComponent<RectTransform>();
         MaxTorqueRecalc = (int) (MaxTorque * MaxTorqueRatio);
-
+        MaxRPMRecalc = (int)(MaxRPM * MaxRPMRatio);
         draw_map_image();
         eff = readFloatArray(Efficeincy);
+        
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        float recalc_w = Mathf.Clamp(trans.rect.width * Mathf.Abs(RPM) / MaxRPM, 0, trans.rect.width);
-        float recalc_h = Mathf.Clamp(trans.rect.height * (Mathf.Abs(Torque) * 10) / MaxTorqueRecalc, 0, trans.rect.height);
+        float recalc_w = Mathf.Clamp(trans.rect.width * Mathf.Abs((float)RPM) / MaxRPMRecalc, 0, trans.rect.width);
+        float recalc_h = Mathf.Clamp(trans.rect.height * (Mathf.Abs((float)Torque) * MaxTorqueRatio) / MaxTorqueRecalc, 0, trans.rect.height);
         pointer.localPosition = new Vector3((int)recalc_w, (int)recalc_h);
 
-        float tempeff = rgb.r[(int)recalc_w,(int)recalc_h] *
-                        (1 - rgb.g[(int)recalc_w,(int)recalc_h]) *
-                        (1 - rgb.b[(int)recalc_w,(int)recalc_h]);
        
-        EfficiencyOut?.Invoke(eff[(int)recalc_w,(int)recalc_h].ToString("F2"));
-
+       
+        EfficiencyOut?.Invoke(eff[(int)recalc_w,(int)recalc_h].ToString("F5"));
+        EfficiencyOutFloat?.Invoke((double)rgb.intensity[(int)recalc_w,(int)recalc_h]);
         if(motorAxle!=null)
             motorAxle.MaterialColor = texture.GetPixel((int) RPM, (int) (Torque * MaxTorqueRatio));
     }
@@ -135,12 +139,24 @@ public class EfficencyMapVisualizer : MonoBehaviour
 
     void draw_map_image()
     {
-        print("Hello");
-        rgb.r=readArray(Red);
-        rgb.g=readArray(Green);
-        rgb.b=readArray(Blue);
         
-        texture = new Texture2D(rgb.r.GetLength(0),rgb.r.GetLength(1));
+        if (monochrome)
+        {
+            rgb.intensity = readFloatArray(Efficeincy);
+        
+
+            texture = new Texture2D(rgb.intensity.GetLength(0), rgb.intensity.GetLength(1));
+        }
+        else
+        {
+            print("Hello");
+            rgb.r = readArray(Red);
+            rgb.g = readArray(Green);
+            rgb.b = readArray(Blue);
+            rgb.intensity = readFloatArray(Efficeincy);
+            texture = new Texture2D(rgb.r.GetLength(0), rgb.r.GetLength(1));
+        }
+
         print(new Vector2(rgb.r.GetLength(0),rgb.r.GetLength(1)));
         
         
@@ -150,20 +166,37 @@ public class EfficencyMapVisualizer : MonoBehaviour
             
             for (int j = rgb.r.GetLength(1)-1; j >=0 ; j--)
             {
-        
-                texture.SetPixel(i,j,new Color(rgb.r[i,j],rgb.g[i,j],rgb.b[i,j]));
+                if (monochrome)
+                {
+                    var value = rgb.intensity[i, j];
+                    var scaled = Mathf.Round((value - 0.95f) * 20f*75f)/75f;
+                    texture.SetPixel(i, j, new Color(scaled, (scaled > 0.25&& scaled<0.45) ? 1f-scaled:0,(scaled<0.4) ? 1f-scaled:0));
+                }
+                else
+                    texture.SetPixel(i,j,new Color(rgb.r[i,j],rgb.g[i,j],rgb.b[i,j]));
         
             }
         }
         texture.Apply();
-        GetComponent<Image>().sprite = Sprite.Create(texture,new Rect(0,0,rgb.r.GetLength(0),rgb.r.GetLength(1)),gameObject.GetComponent<RectTransform>().pivot);
+        if (monochrome)
+        {
+            GetComponent<Image>().sprite = Sprite.Create(texture,new Rect(0,0,rgb.intensity.GetLength(0),rgb.intensity.GetLength(1)),gameObject.GetComponent<RectTransform>().pivot);
+        }
+        else
+            GetComponent<Image>().sprite = Sprite.Create(texture,new Rect(0,0,rgb.r.GetLength(0),rgb.r.GetLength(1)),gameObject.GetComponent<RectTransform>().pivot);
 
 
 
     }
-    
-    
-    
-    
+
+
+    public void updateTorque(double value)
+    {
+        Torque = value;
+    }
+    public void updateRPM(double value)
+    {
+        RPM = value;
+    }
     
 }
