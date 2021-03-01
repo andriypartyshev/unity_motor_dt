@@ -66,9 +66,13 @@ public class AngluarVelocityVisualizer : MonoBehaviour
         }
         
 
+        
 
 
 
-
+    }
+    public void updateRPMValue(double value)
+    {
+        AngularVelocity = (float) value * (2 * Mathf.PI) / 60f;;
     }
 }

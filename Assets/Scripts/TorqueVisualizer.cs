@@ -82,11 +82,15 @@ public class TorqueVisualizer : MonoBehaviour
             if(c!=null)
                 c.value = Mathf.Abs(forcePercent);
         }
-        
 
 
 
+       
 
 
+    }
+    public void updateValue(double value)
+    {
+        Torque = (float) value;
     }
 }
